@@ -1,39 +1,81 @@
 #!usr/bin/python
 
 import copy, numpy
+from alignment import *
 
 class MultiAligner:
 
     def __init__(self, lSentence_):
         self.lSentence = lSentence_
-        self.nbSentence = len(self.lSentence)
-        self.dSentence = {}
-        for i in xrange(self.nbSentence):
-            self.dSentence[i] = self.lSentence[i]
         
-
     def align(self):
-        sentenceToAlign = copy.copy(self.lSentence)
-        nbSentence = len(sentenceToAlign)
+        sentencesToAlign = copy.copy(self.lSentence)
+        nbSentence = len(sentencesToAlign)
         
         distMat = numpy.zeros((nbSentence, nbSentence), int)
-        distMat = self.computeDistanceMatrix(distMat, sentenceToAlign)
+        distMat = self.computeDistanceMatrix(distMat, sentencesToAlign)
         print distMat
 
-        #while len(sentenceToAlign)>0:
-        #    self.alignSentence()
-        #    mat = self.computeDistanceMatrix()
+        n1, n2 = self.pickSentencePair(distMat, sentencesToAlign)
+        align = self.alignSentences(n1, n2, sentencesToAlign)
+        print align
+        print align.sentAlign([sentencesToAlign[n1], sentencesToAlign[n2]])
+        #while nbSentence>0:
+        #    i,j = self.pickSentencePair(distMat)
+        #    self.alignSentences(sentencesToAlign[i], sentencesToAlign[j])
+        #    distMat = self.updateDistanceMatrix(distMat)
+        #    sentencesToAlign.pop(j)
+        #    sentencesToAlign.pop(i)
 
-    def alignSentence(self):
+            
+    def pickSentencePair(self, distMat, sentencesToAlign):
+        minVal = 999
+        minI = 0
+        minJ = 0
+        for i in xrange(len(sentencesToAlign)):
+            for j in xrange(i+1, len(sentencesToAlign)):
+                if distMat[i,j] < minVal:
+                    minVal = distMat[i,j]
+                    minI = i
+                    minJ = j
+        return minI, minJ
+
+    def alignSentences(self, n1, n2, sentencesToAlign):
+        s1 = sentencesToAlign[n1]
+        s2 = sentencesToAlign[n2]
+        editMat, finalCell = self.computeEditDistance(s1, s2)
+        print editMat
+        align = Alignment()
+        
+        cell = finalCell
+        while not isinstance(cell, FirstDistCell):
+            alignCell = AlignCell()
+            
+            if cell.i == cell.prev.i and cell.j == cell.prev.j:
+                # Equality or substitution
+                alignCell.add(SentPos(n1, cell.i-1))
+                alignCell.add(SentPos(n2, cell.j-1))
+            elif cell.i == cell.prev.i:
+                # deletion
+                alignCell.add(SentPos(n1, -1))
+                alignCell.add(SentPos(n2, cell.j-1))
+            else:
+                # insertion
+                alignCell.add(SentPos(n1, cell.i-1))
+                alignCell.add(SentPos(n2, -1))
+            
+            align.insert(0, alignCell)
+            cell = cell.prev
+        return align
+
+    def updateDistanceMatrix(self, distMat):
         pass
 
     def computeDistanceMatrix(self, mat, sentenceToAlign):
         for i in xrange(len(sentenceToAlign)):
             for j in xrange(i+1, len(sentenceToAlign)):
-                if i == j:
-                    mat[i,j] = 0
-                else:
-                    mat[i,j] = self.computeEditDistance(sentenceToAlign[i], sentenceToAlign[j])
+                editMat, finalCell = self.computeEditDistance(sentenceToAlign[i], sentenceToAlign[j])
+                mat[i,i] = finalCell.val
         return mat
 
     def computeEditDistance(self, s1, s2):
@@ -41,9 +83,9 @@ class MultiAligner:
         mat = numpy.zeros((l1+1,l2+1), object)
         
         for i in xrange(l1+1): 
-            mat[i,0] = DistCell(0, FirstDistCell())
+            mat[i,0] = DistCell(i, 0, 0, FirstDistCell(i,0))
         for j in xrange(l2+1):
-            mat[0,j] = DistCell(0, FirstDistCell())
+            mat[0,j] = DistCell(0, j, 0, FirstDistCell(0,j))
 
         for i in xrange(1,l1+1):
             for j in xrange(1,l2+1):
@@ -51,15 +93,19 @@ class MultiAligner:
                          (mat[i,j-1].val+1, mat[i,j-1]),
                          (mat[i-1,j-1].val+(0 if s1[i-1]==s2[j-1] else 1), mat[i-1,j-1])]
                 prev = reduce(lambda x, y: x if x[0]<=y[0] else y, lPrev, (999,None))
-                mat[i,j] = DistCell(prev[0], prev[1])
-        print mat
-        return mat[l1,l2].val
+                mat[i,j] = DistCell(i, j, prev[0], prev[1])
+        #print mat
+        return mat, mat[l1,l2]
 
 class FirstDistCell():
-    pass
+    def __init__(self, i, j):
+        self.i = i
+        self.j = j
 
 class DistCell():
-    def __init__(self,  val, prevDistCell):
+    def __init__(self, i, j, val, prevDistCell):
+        self.i = i
+        self.j = j
         self.val = val
         assert prevDistCell is not None, "prevDistCell is null"
         assert isinstance(prevDistCell, DistCell)==True or isinstance(prevDistCell, FirstDistCell), type(prevDistCell)+" not allowed"
@@ -67,25 +113,3 @@ class DistCell():
 
     def __str__(self):
         return str(self.val)
-
-class Alignment(list):
-    
-    def __init__(self):
-        pass
-
-
-class Cell(list):
-    """ A cell lists all SentPos which are aligned together.
-    """
-    pass
-
-
-class SentPos():
-    """ A couple representing a Position in a Sentence.
-    """
-    def __init__(self, sentence, pos):
-        self.sentence = sentence
-        self.pos = pos
-
-    def __str__(self):
-        return (self.sentence, self.pos)

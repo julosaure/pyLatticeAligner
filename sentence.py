@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from functools import *
+from functools import total_ordering
 
 class Sentence(list):
 
@@ -10,6 +10,7 @@ class Sentence(list):
 
     def __str__(self):
         return str(map(str, self.__iter__()))
+        
 
 @total_ordering
 class Token:
