@@ -19,7 +19,7 @@ class MultiAligner:
         n1, n2 = self.pickSentencePair(distMat, sentencesToAlign)
         align = self.alignSentences(n1, n2, sentencesToAlign)
         print align
-        print align.sentAlign([sentencesToAlign[n1], sentencesToAlign[n2]])
+        print align.sentAlign([n1, n2], sentencesToAlign)
         #while nbSentence>0:
         #    i,j = self.pickSentencePair(distMat)
         #    self.alignSentences(sentencesToAlign[i], sentencesToAlign[j])
@@ -48,22 +48,24 @@ class MultiAligner:
         align = Alignment()
         
         cell = finalCell
-        while not isinstance(cell, FirstDistCell):
+        while not isinstance(cell.prev, FirstDistCell):
             alignCell = AlignCell()
-            
-            if cell.i == cell.prev.i and cell.j == cell.prev.j:
-                # Equality or substitution
+            print cell.pp()
+
+            if cell.i == cell.prev.i+1:
+                # equality or substitution
                 alignCell.add(SentPos(n1, cell.i-1))
-                alignCell.add(SentPos(n2, cell.j-1))
-            elif cell.i == cell.prev.i:
+            else:
                 # deletion
                 alignCell.add(SentPos(n1, -1))
+
+            if cell.j == cell.prev.j+1: 
+                # equality or substitution
                 alignCell.add(SentPos(n2, cell.j-1))
             else:
                 # insertion
-                alignCell.add(SentPos(n1, cell.i-1))
                 alignCell.add(SentPos(n2, -1))
-            
+
             align.insert(0, alignCell)
             cell = cell.prev
         return align
@@ -83,17 +85,18 @@ class MultiAligner:
         mat = numpy.zeros((l1+1,l2+1), object)
         
         for i in xrange(l1+1): 
-            mat[i,0] = DistCell(i, 0, 0, FirstDistCell(i,0))
+            mat[i,0] = DistCell(i, 0, i, FirstDistCell(i,0))
         for j in xrange(l2+1):
-            mat[0,j] = DistCell(0, j, 0, FirstDistCell(0,j))
+            mat[0,j] = DistCell(0, j, j, FirstDistCell(0,j))
 
         for i in xrange(1,l1+1):
             for j in xrange(1,l2+1):
                 lPrev = [(mat[i-1,j].val+1, mat[i-1,j]),
                          (mat[i,j-1].val+1, mat[i,j-1]),
-                         (mat[i-1,j-1].val+(0 if s1[i-1]==s2[j-1] else 1), mat[i-1,j-1])]
+                         (mat[i-1,j-1].val+(0 if s1[i-1]==s2[j-1] else 2), mat[i-1,j-1])]
                 prev = reduce(lambda x, y: x if x[0]<=y[0] else y, lPrev, (999,None))
                 mat[i,j] = DistCell(i, j, prev[0], prev[1])
+                #print i, j, prev[0], prev[1]
         #print mat
         return mat, mat[l1,l2]
 
@@ -102,6 +105,9 @@ class FirstDistCell():
         self.i = i
         self.j = j
 
+    def coord(self):
+        return "("+str(self.i)+", "+str(self.j)+")"
+ 
 class DistCell():
     def __init__(self, i, j, val, prevDistCell):
         self.i = i
@@ -113,3 +119,12 @@ class DistCell():
 
     def __str__(self):
         return str(self.val)
+
+    def pp(self):
+        return "DC("+str(self.i)+", "+str(self.j)+", "+str(self.val)+", "+self.prev.coord()+")"
+
+    def coord(self):
+        return "("+str(self.i)+", "+str(self.j)+")"
+ 
+
+    

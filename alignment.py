@@ -3,18 +3,18 @@
 import string, bisect
 
 class Alignment(list):
-    
-    def __init__(self):
-        pass
-
+    """An alignment is a list of AlignCell where each AlignCell lists
+    all the words or indels which are aligned together.
+    """
     def __str__(self):
         return str(map(str, self.__iter__()))
 
-    def sentAlign(self, lSentence):
+    def sentAlign(self, lSentence, sentencesToAlign):
         s = []
-        for i in xrange(len(lSentence)):
-            sent = lSentence[i]
-            print sent
+        #print lSentence
+        for i in lSentence:
+            sent = sentencesToAlign[i]
+            #print sent
             for cell in self:
                 for sentPos in cell:
                     if sentPos.sentence == i:
@@ -45,6 +45,7 @@ class AlignCell():
 
     def next(self):
         if self.index == len(self.list):
+            self.index = 0
             raise StopIteration
         self.index += 1
         return self.list[self.index-1]
