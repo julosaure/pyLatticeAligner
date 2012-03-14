@@ -48,7 +48,7 @@ class MultiAligner:
         align = Alignment()
         
         cell = finalCell
-        while not isinstance(cell.prev, FirstDistCell):
+        while cell.i > 0 or cell.j > 0: 
             alignCell = AlignCell()
             #print cell.pp()
 
@@ -67,6 +67,7 @@ class MultiAligner:
                 alignCell.add(SentPos(n2, -1))
 
             align.insert(0, alignCell)
+            #print align
             cell = cell.prev
         return align
 
@@ -78,45 +79,39 @@ class MultiAligner:
             for j in xrange(i+1, len(sentenceToAlign)):
                 editMat, finalCell = self.computeEditDistance(sentenceToAlign[i], sentenceToAlign[j])
                 mat[i,j] = finalCell.val
-                print sentenceToAlign[i], sentenceToAlign[j], finalCell.val
-        print mat
+                #print sentenceToAlign[i], sentenceToAlign[j], finalCell.val
+        #print mat
         return mat
 
     def computeEditDistance(self, s1, s2):
         l1 = len(s1); l2 = len(s2)
         mat = numpy.zeros((l1+1,l2+1), object)
         
-        for i in xrange(l1+1): 
-            mat[i,0] = DistCell(i, 0, i, FirstDistCell(i,0))
-        for j in xrange(l2+1):
-            mat[0,j] = DistCell(0, j, j, FirstDistCell(0,j))
+        mat[0,0] = DistCell(0, 0, 0, None)
+        for i in xrange(1, l1+1): 
+            mat[i,0] = DistCell(i, 0, i, mat[i-1,0])
+        for j in xrange(1, l2+1):
+            mat[0,j] = DistCell(0, j, j, mat[0,j-1])
 
         for i in xrange(1,l1+1):
             for j in xrange(1,l2+1):
                 lPrev = [(mat[i-1,j].val+1, mat[i-1,j]),
                          (mat[i,j-1].val+1, mat[i,j-1]),
-                         (mat[i-1,j-1].val+(0 if s1[i-1]==s2[j-1] else 2), mat[i-1,j-1])]
+                         (mat[i-1,j-1].val+(0 if s1[i-1]==s2[j-1] else 1), mat[i-1,j-1])]
                 prev = reduce(lambda x, y: x if x[0]<=y[0] else y, lPrev, (999,None))
                 mat[i,j] = DistCell(i, j, prev[0], prev[1])
                 #print i, j, prev[0], prev[1]
         #print mat
         return mat, mat[l1,l2]
 
-class FirstDistCell():
-    def __init__(self, i, j):
-        self.i = i
-        self.j = j
-
-    def coord(self):
-        return "("+str(self.i)+", "+str(self.j)+")"
  
 class DistCell():
     def __init__(self, i, j, val, prevDistCell):
         self.i = i
         self.j = j
         self.val = val
-        assert prevDistCell is not None, "prevDistCell is null"
-        assert isinstance(prevDistCell, DistCell)==True or isinstance(prevDistCell, FirstDistCell), type(prevDistCell)+" not allowed"
+        #assert prevDistCell is not None , "prevDistCell is null"
+        #assert isinstance(prevDistCell, DistCell)==True or isinstance(prevDistCell, FirstDistCell), type(prevDistCell)+" not allowed"
         self.prev = prevDistCell
 
     def __str__(self):
