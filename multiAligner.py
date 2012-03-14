@@ -50,7 +50,7 @@ class MultiAligner:
         cell = finalCell
         while not isinstance(cell.prev, FirstDistCell):
             alignCell = AlignCell()
-            print cell.pp()
+            #print cell.pp()
 
             if cell.i == cell.prev.i+1:
                 # equality or substitution
@@ -77,7 +77,9 @@ class MultiAligner:
         for i in xrange(len(sentenceToAlign)):
             for j in xrange(i+1, len(sentenceToAlign)):
                 editMat, finalCell = self.computeEditDistance(sentenceToAlign[i], sentenceToAlign[j])
-                mat[i,i] = finalCell.val
+                mat[i,j] = finalCell.val
+                print sentenceToAlign[i], sentenceToAlign[j], finalCell.val
+        print mat
         return mat
 
     def computeEditDistance(self, s1, s2):
