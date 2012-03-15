@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import string, bisect
+from sentence import *
 
 class Alignment(list):
     """An alignment is a list of AlignCell where each AlignCell lists
@@ -22,22 +23,26 @@ class Alignment(list):
                             s.append('X')
                         else:
                             s.append(str(sent[sentPos.pos]))
-                        s.append('\t')
+                        s.append('$')
             s.append('\n')
         return string.join(s)
 
 class AlignCell():
     """ A cell lists all SentPos which are aligned together.
     """
-    def __init__(self):
+    def __init__(self, lSentence_, lAlignedSentences_):
         self.list = []
         self.index = 0
+        self.lSentence = lSentence_
+        self.lAlignedSentences = lAlignedSentences_
 
     def __str__(self):
-        return str(map(str, self.list))#__iter__()))
+        return str(map(str, self.list))
 
     def add(self, sentPos):
         bisect.insort_left(self.list, sentPos)
+        #if sentPos.sentence not in self.lAlignedSentences:
+        #    self.lAlignedSentences.append(sentPos.sentence)
         self.index = 0
 
     def __iter__(self):
@@ -49,6 +54,26 @@ class AlignCell():
             raise StopIteration
         self.index += 1
         return self.list[self.index-1]
+
+    def __eq__(self, other):
+        assert isinstance(other, Token)
+        return self.eqToken(other)
+
+    def eqToken(self, token):
+        assert isinstance(token, Token)
+        equals = False
+        for sentPos in self:
+            if sentPos.pos == -1:
+                continue
+            sentPosTok = self.lSentence[sentPos.sentence][sentPos.pos]
+            if sentPosTok == token:
+                equals = True
+                break
+        return equals
+    
+    def fillDeletedAlignedTokens(self):
+        for n in self.lAlignedSentences:
+            self.add(SentPos(n, -1))
 
 class SentPos():
     """ A couple representing a Position in a Sentence.

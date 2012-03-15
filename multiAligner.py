@@ -16,19 +16,27 @@ class MultiAligner:
         distMat = self.computeDistanceMatrix(distMat, sentencesToAlign)
         print distMat
 
+        alignedSentences = []
         n1, n2 = self.pickSentencePair(distMat, sentencesToAlign)
-        align = self.alignSentences(n1, n2, sentencesToAlign)
+        align = self.alignSentencePair(n1, n2, sentencesToAlign, alignedSentences)
         print align
         print align.sentAlign([n1, n2], sentencesToAlign)
-        #while nbSentence>0:
-        #    i,j = self.pickSentencePair(distMat)
-        #    self.alignSentences(sentencesToAlign[i], sentencesToAlign[j])
-        #    distMat = self.updateDistanceMatrix(distMat)
-        #    sentencesToAlign.pop(j)
-        #    sentencesToAlign.pop(i)
-
-            
+        
+        alignedSentences.extend([n1, n2])
+        while len(alignedSentences) < len(sentencesToAlign):
+            n2 = self.pickMinSentence(distMat, sentencesToAlign, alignedSentences)
+            align = self.alignSentenceVsAlignment(align, n2, sentencesToAlign, alignedSentences)
+            alignedSentences.append(n2)
+            #distMat = self.updateDistanceMatrix(distMat)
+        res =  align.sentAlign(alignedSentences, sentencesToAlign)
+        print res
+        f = open("toto.csv", "w")
+        f.write(res)
+        f.close()
+        
     def pickSentencePair(self, distMat, sentencesToAlign):
+        """ Pick the sentence pair with minimal edit distance in distMat.
+        """
         minVal = 999
         minI = 0
         minJ = 0
@@ -40,7 +48,55 @@ class MultiAligner:
                     minJ = j
         return minI, minJ
 
-    def alignSentences(self, n1, n2, sentencesToAlign):
+    def pickMinSentence(self, distMat, sentencesToAlign, lAlignedSentences):
+        """ Pick the sentence with minimal edit distance to previously aligned sentences.
+        """
+        minVal = 999
+        minJ = 0
+        for i in lAlignedSentences:
+            for j in xrange(len(sentencesToAlign)):
+                if j in lAlignedSentences:
+                    continue
+                if distMat[i,j] < minVal:
+                    minVal = distMat[i,j]
+                    minJ = j
+        return minJ
+
+    def alignSentenceVsAlignment(self, align, n2, sentencesToAlign, alignedSentences):
+        s2 = sentencesToAlign[n2]
+        print s2
+        editMat, finalCell = self.computeEditDistance(align, s2)
+        print editMat
+                
+        cell = finalCell
+        while cell.i > 0 or cell.j > 0: 
+            #alignCell = align[sell.i-1]
+            #print cell.pp()
+
+            if cell.i == cell.prev.i+1:
+                pass
+                # equality or substitution
+                #alignCell[cell.i-1].add(SentPos(n1, cell.i-1))
+            else:
+                # insertion
+                alignCell = AlignCell(sentencesToAlign, alignedSentences)
+                alignCell.fillDeletedAlignedTokens()
+                align.insert(cell.i, alignCell)
+
+            if cell.j == cell.prev.j+1: 
+                # equality or substitution
+                align[cell.i-1].add(SentPos(n2, cell.j-1))
+            else:
+                # deletion
+                align[cell.i-1].add(SentPos(n2, -1))
+            
+            #align.insert(0, alignCell)
+            #print align
+            cell = cell.prev
+        return align
+
+        
+    def alignSentencePair(self, n1, n2, sentencesToAlign, alignedSentences):
         s1 = sentencesToAlign[n1]
         s2 = sentencesToAlign[n2]
         editMat, finalCell = self.computeEditDistance(s1, s2)
@@ -49,7 +105,7 @@ class MultiAligner:
         
         cell = finalCell
         while cell.i > 0 or cell.j > 0: 
-            alignCell = AlignCell()
+            alignCell = AlignCell(sentencesToAlign, alignedSentences)
             #print cell.pp()
 
             if cell.i == cell.prev.i+1:
@@ -66,6 +122,7 @@ class MultiAligner:
                 # insertion
                 alignCell.add(SentPos(n2, -1))
 
+            
             align.insert(0, alignCell)
             #print align
             cell = cell.prev
@@ -79,8 +136,6 @@ class MultiAligner:
             for j in xrange(i+1, len(sentenceToAlign)):
                 editMat, finalCell = self.computeEditDistance(sentenceToAlign[i], sentenceToAlign[j])
                 mat[i,j] = finalCell.val
-                #print sentenceToAlign[i], sentenceToAlign[j], finalCell.val
-        #print mat
         return mat
 
     def computeEditDistance(self, s1, s2):
