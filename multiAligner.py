@@ -169,8 +169,6 @@ class DistCell():
         self.i = i
         self.j = j
         self.val = val
-        #assert prevDistCell is not None , "prevDistCell is null"
-        #assert isinstance(prevDistCell, DistCell)==True or isinstance(prevDistCell, FirstDistCell), type(prevDistCell)+" not allowed"
         self.prev = prevDistCell
 
     def __str__(self):
