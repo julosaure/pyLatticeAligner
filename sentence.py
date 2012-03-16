@@ -22,6 +22,7 @@ class Token:
         return self.text
 
     def __eq__(self, other):
+        assert isinstance(other, Token)
         return self.text.__eq__(other.text)
 
     def __lt__(self, other):

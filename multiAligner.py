@@ -76,22 +76,26 @@ class MultiAligner:
             if cell.i == cell.prev.i+1:
                 pass
                 # equality or substitution
-                #alignCell[cell.i-1].add(SentPos(n1, cell.i-1))
+                # nothing to do 
             else:
                 # insertion
                 alignCell = AlignCell(sentencesToAlign, alignedSentences)
-                alignCell.fillDeletedAlignedTokens()
+                alignCell.fillNonAlignedTokens()
                 align.insert(cell.i, alignCell)
 
             if cell.j == cell.prev.j+1: 
-                # equality or substitution
-                align[cell.i-1].add(SentPos(n2, cell.j-1))
+                if  cell.i == cell.prev.i+1:
+                    # equality or substitution
+                    align[cell.i-1].add(SentPos(n2, cell.j-1))
+                else:
+                    # insertion
+                    align[cell.i].add(SentPos(n2, cell.j-1))
             else:
                 # deletion
                 align[cell.i-1].add(SentPos(n2, -1))
-            
-            #align.insert(0, alignCell)
-            #print align
+ 
+            l =  copy.copy(alignedSentences) ; l.append(n2)    
+            #print align.sentAlign(l, sentencesToAlign)
             cell = cell.prev
         return align
 

@@ -23,38 +23,38 @@ class Alignment(list):
                             s.append('X')
                         else:
                             s.append(str(sent[sentPos.pos]))
-                        s.append('$')
+                        s.append(',')
             s.append('\n')
         return string.join(s)
 
-class AlignCell():
-    """ A cell lists all SentPos which are aligned together.
+class AlignCell(list):
+    """ A cell is a list of SentPos which are aligned together.
     """
-    def __init__(self, lSentence_, lAlignedSentences_):
-        self.list = []
-        self.index = 0
-        self.lSentence = lSentence_
-        self.lAlignedSentences = lAlignedSentences_
+    def __init__(self, sentencesToAlign_, alignedSentences_):
+        self.sentencesToAlign = sentencesToAlign_
+        self.alignedSentences = alignedSentences_
 
     def __str__(self):
-        return str(map(str, self.list))
+        return str(map(str, self))
+
+    def pp(self):
+        s = []
+        for i in self.alignedSentences:
+            sent = self.sentencesToAlign[i]
+            for sentPos in self:
+                if sentPos.sentence == i:
+                    if sentPos.pos == -1:
+                        s.append('X')
+                    else:
+                        s.append(str(sent[sentPos.pos]))
+                    s.append(',')
+            #s.append('\n')
+        return string.join(s)
+
 
     def add(self, sentPos):
-        bisect.insort_left(self.list, sentPos)
-        #if sentPos.sentence not in self.lAlignedSentences:
-        #    self.lAlignedSentences.append(sentPos.sentence)
-        self.index = 0
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        if self.index == len(self.list):
-            self.index = 0
-            raise StopIteration
-        self.index += 1
-        return self.list[self.index-1]
-
+        bisect.insort_left(self, sentPos)
+        
     def __eq__(self, other):
         assert isinstance(other, Token)
         return self.eqToken(other)
@@ -65,14 +65,15 @@ class AlignCell():
         for sentPos in self:
             if sentPos.pos == -1:
                 continue
-            sentPosTok = self.lSentence[sentPos.sentence][sentPos.pos]
+            sentPosTok = self.sentencesToAlign[sentPos.sentence][sentPos.pos]
             if sentPosTok == token:
                 equals = True
                 break
+        #print self.pp() + " / " +str(token)+ " -> " +str(equals)
         return equals
     
-    def fillDeletedAlignedTokens(self):
-        for n in self.lAlignedSentences:
+    def fillNonAlignedTokens(self):
+        for n in self.alignedSentences:
             self.add(SentPos(n, -1))
 
 class SentPos():

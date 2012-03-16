@@ -3,7 +3,7 @@
 import fileinput
 import sentence, multiAligner
 
-INFILE = "./sentences5.txt"
+INFILE = "./sentences8.txt"
 
 def readSentences():
     lSentences = []
