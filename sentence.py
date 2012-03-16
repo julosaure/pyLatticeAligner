@@ -4,9 +4,10 @@ from functools import total_ordering
 
 class Sentence(list):
 
-    def __init__(self, text):
+    def __init__(self, text, stemmer):
         self.text = text
-        self.extend(map(lambda t: Token(t), text.split(' ')))
+        
+        self.extend(map(lambda t: Token(t, stemmer.stem(t)), text.split(' ')))
 
     def __str__(self):
         return str(map(str, self.__iter__()))
@@ -15,15 +16,17 @@ class Sentence(list):
 @total_ordering
 class Token:
     
-    def __init__(self, text):
+    def __init__(self, text, stem=None):
         self.text = text
+        self.stem = stem
+        self.comp = self.stem if self.stem is not None else self.text
 
     def __str__(self):
         return self.text
 
     def __eq__(self, other):
         assert isinstance(other, Token)
-        return self.text.lower().__eq__(other.text.lower())
+        return self.comp.lower().__eq__(other.comp.lower())
 
     def __lt__(self, other):
-        return self.text.__lt__(other.text)
+        return self.comp.__lt__(other.comp)
