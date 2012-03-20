@@ -4,7 +4,7 @@ import fileinput
 import nltk
 import sentence, multiAligner, lattice
 
-INFILE = "./data/sentences10.txt"
+INFILE = "./data/amt/sent1clean.txt"
 
 class PyLatticeAligner():
 
@@ -14,6 +14,7 @@ class PyLatticeAligner():
     def readSentences(self):
         lSentences = []
         for line in fileinput.input(INFILE):
+            line = line.decode('utf8')
             line = line.strip()
             sent = sentence.Sentence(line, self.stemmer)
             print sent

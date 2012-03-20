@@ -22,7 +22,7 @@ class Token:
         self.comp = self.stem if self.stem is not None else self.text
 
     def __str__(self):
-        return self.text
+        return self.text.encode("utf8")
 
     def __eq__(self, other):
         assert isinstance(other, Token)
