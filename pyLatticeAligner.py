@@ -22,7 +22,12 @@ class PyLatticeAligner():
 
     def computeMultiAlign(self, lSentences):
         aligner = multiAligner.MultiAligner(lSentences)
-        align = aligner.align()
+        align, alignstr = aligner.align()
+        print alignstr
+        f = open("output.csv", "w")
+        f.write(alignstr)
+        f.close()
+        
         return align
 
     def searchBestPath(self, align):

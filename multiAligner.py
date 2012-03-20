@@ -28,12 +28,9 @@ class MultiAligner:
             align = self.alignSentenceVsAlignment(align, n2, sentencesToAlign, alignedSentences)
             alignedSentences.append(n2)
             #distMat = self.updateDistanceMatrix(distMat)
-        res =  align.sentAlign(alignedSentences, sentencesToAlign)
-        print res
-        f = open("output.csv", "w")
-        f.write(res)
-        f.close()
-        return align
+        
+        alignstr =  align.sentAlign(alignedSentences, sentencesToAlign)
+        return align, alignstr
 
     def pickSentencePair(self, distMat, sentencesToAlign):
         """ Pick the sentence pair with minimal edit distance in distMat.
