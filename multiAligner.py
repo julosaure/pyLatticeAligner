@@ -30,10 +30,11 @@ class MultiAligner:
             #distMat = self.updateDistanceMatrix(distMat)
         res =  align.sentAlign(alignedSentences, sentencesToAlign)
         print res
-        f = open("toto.csv", "w")
+        f = open("output.csv", "w")
         f.write(res)
         f.close()
-        
+        return align
+
     def pickSentencePair(self, distMat, sentencesToAlign):
         """ Pick the sentence pair with minimal edit distance in distMat.
         """

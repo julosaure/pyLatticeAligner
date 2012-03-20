@@ -30,3 +30,11 @@ class Token:
 
     def __lt__(self, other):
         return self.comp.__lt__(other.comp)
+
+    def __hash__(self):
+        return self.comp.__hash__()
+
+class NullToken(Token):
+
+    def __init__(self):
+        Token.__init__(self, "X")

@@ -2,7 +2,7 @@
 
 import fileinput
 import nltk
-import sentence, multiAligner
+import sentence, multiAligner, lattice
 
 INFILE = "./data/sentences10.txt"
 
@@ -22,20 +22,20 @@ class PyLatticeAligner():
         return lSentences
 
     def computeMultiAlign(self, lSentences):
-        align = multiAligner.MultiAligner(lSentences)
-        align.align()
+        aligner = multiAligner.MultiAligner(lSentences)
+        align = aligner.align()
+        return align
 
-    def reduceMalignToLattice(self, mAlign):
-            pass
-
-    def searchBestPath(self, lattice):
-        pass
+    def searchBestPath(self, align):
+        lat = lattice.Lattice(align)
+        print lat
+        print lat.getBestPath()
+        print lat.getBestPath(False)
 
     def main(self):
         lSentences = self.readSentences()
-        mAlign = self.computeMultiAlign(lSentences)
-        lattice = self.reduceMalignToLattice(mAlign)
-        self.searchBestPath(lattice)
+        align = self.computeMultiAlign(lSentences)
+        self.searchBestPath(align)
 
 if __name__ == "__main__":
     aligner = PyLatticeAligner()
