@@ -25,7 +25,7 @@ class Lattice(list):
             for sentPos in distCell:
                 tok = NullToken()
                 if sentPos.pos != -1:
-                    tok = distCell.sentencesToAlign[sentPos.sentence][sentPos.pos]
+                    tok = distCell.lSentence[sentPos.sentence][sentPos.pos]
                 try:
                     dicToken[tok] += 1
                 except KeyError:

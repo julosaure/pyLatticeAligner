@@ -7,8 +7,8 @@ class Alignment(list):
     """An alignment is a list of AlignCell where each AlignCell lists
     all the words or indels which are aligned together.
     """
-    def __init__(self, sentencesToAlign_):
-        self.sentencesToAlign = copy.copy(sentencesToAlign_)
+    def __init__(self, lSentence_):
+        self.lSentence = copy.copy(lSentence_)
         self.alignedSentences = []
 
     def __str__(self):
@@ -18,7 +18,7 @@ class Alignment(list):
         s = []
         #print lSentence
         for i in self.alignedSentences:
-            sent = self.sentencesToAlign[i]
+            sent = self.lSentence[i]
             #print sent
             for cell in self:
                 for sentPos in cell:
@@ -35,7 +35,7 @@ class Alignment(list):
         """ AlignCell Factory constructor.
         Use this method for creating a new AlignCell that belongs to this Alignment.
         """
-        return AlignCell(self.sentencesToAlign, self.alignedSentences)
+        return AlignCell(self.lSentence, self.alignedSentences)
 
 class AlignCell(list):
     """ A cell is a list of SentPos which are aligned together.
@@ -43,8 +43,8 @@ class AlignCell(list):
     All AlignCell must be created with Alignment.newAlignCell() in order
     to have a proper management of the sentences which are aligned. 
     """
-    def __init__(self, sentencesToAlign_, alignedSentences_):
-        self.sentencesToAlign = sentencesToAlign_
+    def __init__(self, lSentence_, alignedSentences_):
+        self.lSentence = lSentence_
         self.alignedSentences = alignedSentences_
 
     def __str__(self):
@@ -53,7 +53,7 @@ class AlignCell(list):
     def pp(self):
         s = []
         for i in self.alignedSentences:
-            sent = self.sentencesToAlign[i]
+            sent = self.lSentence[i]
             for sentPos in self:
                 if sentPos.sentence == i:
                     if sentPos.pos == -1:
@@ -78,7 +78,7 @@ class AlignCell(list):
         for sentPos in self:
             if sentPos.pos == -1:
                 continue
-            sentPosTok = self.sentencesToAlign[sentPos.sentence][sentPos.pos]
+            sentPosTok = self.lSentence[sentPos.sentence][sentPos.pos]
             if sentPosTok == token:
                 equals = True
                 break

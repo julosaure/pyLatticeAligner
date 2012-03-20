@@ -22,7 +22,7 @@ class MultiAligner:
         print align.sentAlign()
         
         while len(align.alignedSentences) < len(sentencesToAlign):
-            n2 = self.pickMinSentence(distMat, align.sentencesToAlign, align.alignedSentences)
+            n2 = self.pickMinSentence(distMat, align.lSentence, align.alignedSentences)
             align = self.alignSentenceVsAlignment(align, n2)
             
             #distMat = self.updateDistanceMatrix(distMat)
@@ -59,7 +59,7 @@ class MultiAligner:
         return minJ
 
     def alignSentenceVsAlignment(self, align, n2):
-        s2 = align.sentencesToAlign[n2]
+        s2 = align.lSentence[n2]
         print s2
         editMat, finalCell = self.computeEditDistance(align, s2)
         print editMat
