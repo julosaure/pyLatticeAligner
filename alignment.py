@@ -1,20 +1,24 @@
 #!/usr/bin/python
 
-import string, bisect
+import string, bisect, copy
 from sentence import *
 
 class Alignment(list):
     """An alignment is a list of AlignCell where each AlignCell lists
     all the words or indels which are aligned together.
     """
+    def __init__(self, sentencesToAlign_):
+        self.sentencesToAlign = copy.copy(sentencesToAlign_)
+        self.alignedSentences = []
+
     def __str__(self):
         return str(map(str, self.__iter__()))
 
-    def sentAlign(self, lSentence, sentencesToAlign):
+    def sentAlign(self):
         s = []
         #print lSentence
-        for i in lSentence:
-            sent = sentencesToAlign[i]
+        for i in self.alignedSentences:
+            sent = self.sentencesToAlign[i]
             #print sent
             for cell in self:
                 for sentPos in cell:
@@ -27,8 +31,17 @@ class Alignment(list):
             s.append('\n')
         return string.join(s)
 
+    def newAlignCell(self):
+        """ AlignCell Factory constructor.
+        Use this method for creating a new AlignCell that belongs to this Alignment.
+        """
+        return AlignCell(self.sentencesToAlign, self.alignedSentences)
+
 class AlignCell(list):
     """ A cell is a list of SentPos which are aligned together.
+    
+    All AlignCell must be created with Alignment.newAlignCell() in order
+    to have a proper management of the sentences which are aligned. 
     """
     def __init__(self, sentencesToAlign_, alignedSentences_):
         self.sentencesToAlign = sentencesToAlign_

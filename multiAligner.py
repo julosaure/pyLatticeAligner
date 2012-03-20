@@ -16,20 +16,18 @@ class MultiAligner:
         distMat = self.computeDistanceMatrix(distMat, sentencesToAlign)
         print distMat
 
-        alignedSentences = []
         n1, n2 = self.pickSentencePair(distMat, sentencesToAlign)
-        align = self.alignSentencePair(n1, n2, sentencesToAlign, alignedSentences)
+        align = self.alignSentencePair(n1, n2, sentencesToAlign)
         print align
-        print align.sentAlign([n1, n2], sentencesToAlign)
+        print align.sentAlign()
         
-        alignedSentences.extend([n1, n2])
-        while len(alignedSentences) < len(sentencesToAlign):
-            n2 = self.pickMinSentence(distMat, sentencesToAlign, alignedSentences)
-            align = self.alignSentenceVsAlignment(align, n2, sentencesToAlign, alignedSentences)
-            alignedSentences.append(n2)
+        while len(align.alignedSentences) < len(sentencesToAlign):
+            n2 = self.pickMinSentence(distMat, align.sentencesToAlign, align.alignedSentences)
+            align = self.alignSentenceVsAlignment(align, n2)
+            
             #distMat = self.updateDistanceMatrix(distMat)
         
-        alignstr =  align.sentAlign(alignedSentences, sentencesToAlign)
+        alignstr =  align.sentAlign()
         return align, alignstr
 
     def pickSentencePair(self, distMat, sentencesToAlign):
@@ -60,8 +58,8 @@ class MultiAligner:
                     minJ = j
         return minJ
 
-    def alignSentenceVsAlignment(self, align, n2, sentencesToAlign, alignedSentences):
-        s2 = sentencesToAlign[n2]
+    def alignSentenceVsAlignment(self, align, n2):
+        s2 = align.sentencesToAlign[n2]
         print s2
         editMat, finalCell = self.computeEditDistance(align, s2)
         print editMat
@@ -77,7 +75,7 @@ class MultiAligner:
                 # nothing to do 
             else:
                 # insertion
-                alignCell = AlignCell(sentencesToAlign, alignedSentences)
+                alignCell = align.newAlignCell()
                 alignCell.fillNonAlignedTokens()
                 align.insert(cell.i, alignCell)
 
@@ -92,22 +90,23 @@ class MultiAligner:
                 # deletion
                 align[cell.i-1].add(SentPos(n2, -1))
  
-            l =  copy.copy(alignedSentences) ; l.append(n2)    
+            #l =  copy.copy(alignedSentences) ; l.append(n2)    
             #print align.sentAlign(l, sentencesToAlign)
             cell = cell.prev
+        align.alignedSentences.append(n2)
         return align
 
         
-    def alignSentencePair(self, n1, n2, sentencesToAlign, alignedSentences):
+    def alignSentencePair(self, n1, n2, sentencesToAlign):
         s1 = sentencesToAlign[n1]
         s2 = sentencesToAlign[n2]
         editMat, finalCell = self.computeEditDistance(s1, s2)
         print editMat
-        align = Alignment()
+        align = Alignment(sentencesToAlign)
         
         cell = finalCell
         while cell.i > 0 or cell.j > 0: 
-            alignCell = AlignCell(sentencesToAlign, alignedSentences)
+            alignCell = align.newAlignCell()
             #print cell.pp()
 
             if cell.i == cell.prev.i+1:
@@ -128,6 +127,7 @@ class MultiAligner:
             align.insert(0, alignCell)
             #print align
             cell = cell.prev
+        align.alignedSentences.extend([n1, n2])
         return align
 
     def updateDistanceMatrix(self, distMat):
