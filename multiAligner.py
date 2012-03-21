@@ -10,10 +10,8 @@ class MultiAligner:
         
     def align(self):
         sentencesToAlign = copy.copy(self.lSentence)
-        nbSentence = len(sentencesToAlign)
         
-        distMat = numpy.zeros((nbSentence, nbSentence), int)
-        distMat = self.computeDistanceMatrix(distMat, sentencesToAlign)
+        distMat = self.computeDistanceMatrix(sentencesToAlign)
         print distMat
 
         n1, n2 = self.pickSentencePair(distMat, sentencesToAlign)
@@ -133,12 +131,15 @@ class MultiAligner:
     def updateDistanceMatrix(self, distMat):
         pass
 
-    def computeDistanceMatrix(self, mat, sentenceToAlign):
+    def computeDistanceMatrix(self, sentenceToAlign):
+        nbSentence = len(sentenceToAlign)
+        distMat = numpy.zeros((nbSentence, nbSentence), int)
+        
         for i in xrange(len(sentenceToAlign)):
             for j in xrange(i+1, len(sentenceToAlign)):
                 editMat, finalCell = self.computeEditDistance(sentenceToAlign[i], sentenceToAlign[j])
-                mat[i,j] = finalCell.val
-        return mat
+                distMat[i,j] = finalCell.val
+        return distMat
 
     def computeEditDistance(self, s1, s2):
         l1 = len(s1); l2 = len(s2)
