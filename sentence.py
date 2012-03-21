@@ -4,10 +4,12 @@ from functools import total_ordering
 
 class Sentence(list):
 
-    def __init__(self, text, stemmer):
+    def __init__(self, text, stemmer, tokenizer):
         self.text = text
         
-        self.extend(map(lambda t: Token(t, stemmer.stem(t)), text.split(' ')))
+        tokens = tokenizer.tokenize(self.text)
+        stemmedTokens = map(lambda t: Token(t, stemmer.stem(t)), tokens)
+        self.extend(stemmedTokens)
 
     def __str__(self):
         return str(map(str, self.__iter__()))

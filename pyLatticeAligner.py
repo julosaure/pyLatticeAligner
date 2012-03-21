@@ -8,13 +8,15 @@ class PyLatticeAligner():
 
     def __init__(self):
         self.stemmer = nltk.stem.SnowballStemmer("english")
+        # default NLTK tokenizer
+        self.tokenizer = nltk.TreebankWordTokenizer()
 
     def readSentences(self, inputFile, noJunk):
         lSentences = []
         for line in fileinput.input(inputFile):
             line = line.decode('utf8')
             line = line.strip()
-            sent = sentence.Sentence(line, self.stemmer)
+            sent = sentence.Sentence(line, self.stemmer, self.tokenizer)
             print sent
             if noJunk and len(sent)<2:
                 continue
@@ -47,7 +49,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Multialign sentences to generate a better one..')
     parser.add_argument("fileName", nargs=1, action="store", help="Name of the file that contains the sentences to align")
-    parser.add_argument("-nojunk", dest="noJunk", action="store_true", help="Remove from input junk sentences made on only 1 word")
+    parser.add_argument("-nojunk", "-nj", dest="noJunk", action="store_true", help="Remove from input junk sentences made on only 1 word")
 
     args = parser.parse_args()
     print args
