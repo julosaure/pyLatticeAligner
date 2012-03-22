@@ -2,7 +2,7 @@
 
 import math, bisect
 from alignment import *
-from sentence import Token
+from sentence import *
 
 class Lattice(list):
     """ A Lattice representing all the possible path in the alignment

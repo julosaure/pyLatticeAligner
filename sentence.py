@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from functools import total_ordering
+from alignment import *
 
 class Sentence(list):
 
@@ -27,8 +28,12 @@ class Token:
         return self.text.encode("utf8")
 
     def __eq__(self, other):
-        assert isinstance(other, Token)
-        return self.comp.lower().__eq__(other.comp.lower())
+        if isinstance(other, Token):
+            return self.comp.lower().__eq__(other.comp.lower())
+        elif isinstance(other, AlignCell):
+            return -other.__eq__(self)
+        else:
+            raise Exception("Invalid type, type(other)="+str(type(other)))
 
     def __lt__(self, other):
         return self.comp.__lt__(other.comp)

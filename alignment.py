@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 import string, bisect, copy
-from sentence import *
+import sentence 
+from lalign import *
 
 class Alignment(list):
     """An alignment is a list of AlignCell where each AlignCell lists
@@ -66,18 +67,27 @@ class AlignCell(list):
 
 
     def add(self, sentPos):
+        assert sentPos.sentence in self.alignedSentences, str(sentPos.sentence)+" "+str(self.alignedSentences)
+        assert sentPos.pos < len(self.lSentence[sentPos.sentence]), str(sentPos.pos)+ " " +str(self.lSentence[sentPos.sentence])
         bisect.insort_left(self, sentPos)
         
     def __eq__(self, other):
-        assert isinstance(other, Token)
-        return self.eqToken(other)
+        #print other
+        if isinstance(other, sentence.Token):
+            return self.eqToken(other)
+        elif isinstance(other, AlignCell):
+            return self.eqAlignCell(other)
+        else:
+            raise Exception("Invalid type, type(other)="+str(type(other)))
 
     def eqToken(self, token):
-        assert isinstance(token, Token)
+        assert isinstance(token, sentence.Token)
         equals = False
         for sentPos in self:
             if sentPos.pos == -1:
                 continue
+            assert sentPos.sentence.abspos < len(self.lSentence)
+            assert sentPos.pos < len(self.lSentence[sentPos.sentence]), str(sentPos.pos) + str(self.lSentence[sentPos.sentence]) 
             sentPosTok = self.lSentence[sentPos.sentence][sentPos.pos]
             if sentPosTok == token:
                 equals = True
@@ -85,6 +95,28 @@ class AlignCell(list):
         #print self.pp() + " / " +str(token)+ " -> " +str(equals)
         return equals
     
+    def eqAlignCell(self, other):
+        assert isinstance(other, AlignCell)
+        equals = False
+        breakMainLoop = False
+        for sentPos in self:
+            if breakMainLoop:
+                break
+            if sentPos.pos == -1:
+                continue
+            for sentPosOther in other:
+                if sentPosOther.pos == -1:
+                    continue
+                
+                sentPosTok = self.lSentence[sentPos.sentence][sentPos.pos]
+                sentPosOtherTok = other.lSentence[sentPosOther.sentence][sentPosOther.pos]
+                if sentPosTok == sentPosOtherTok:
+                    equals = True
+                    breakMainLoop = True
+                    break
+        #print self.pp() + " / " +str(token)+ " -> " +str(equals)
+        return equals
+
     def fillNonAlignedTokens(self):
         for n in self.alignedSentences:
             self.add(SentPos(n, -1))
@@ -93,6 +125,7 @@ class SentPos():
     """ A couple representing a Position in a Sentence.
     """
     def __init__(self, sentence, pos):
+        assert isinstance(sentence, AbsPos)
         self.sentence = sentence
         self.pos = pos
 

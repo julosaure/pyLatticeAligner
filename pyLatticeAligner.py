@@ -27,7 +27,7 @@ class PyLatticeAligner():
     def computeMultiAlign(self, lSentences):
         aligner = multiAligner.MultiAligner(lSentences)
         align, alignstr = aligner.align()
-        print alignstr
+        #print alignstr
         f = open("output.csv", "w")
         f.write(alignstr)
         f.close()
@@ -36,7 +36,7 @@ class PyLatticeAligner():
 
     def searchBestPath(self, align):
         lat = lattice.Lattice(align)
-        print lat
+        #print lat
         print lat.getBestPath()
         print lat.getBestPath(False)
 
