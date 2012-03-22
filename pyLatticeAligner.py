@@ -22,7 +22,7 @@ class PyLatticeAligner():
             line = line.strip()
             sent = sentence.Sentence(line, self.stemmer, self.tokenizer, self.tagger)
             print sent.pp()
-            if noJunk and len(sent)<2:
+            if noJunk and len(sent)<=noJunk:
                 continue
             lSentences.append(sent)
         #print lSentences
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Multialign sentences to generate a better one..')
     parser.add_argument("fileName", nargs=1, action="store", help="Name of the file that contains the sentences to align")
-    parser.add_argument("-nojunk", "-nj", dest="noJunk", action="store_true", help="Remove from input junk sentences made on only 1 word")
+    parser.add_argument("-nojunk", "-nj", dest="noJunk", action="store", type=int, help="Remove from input junk sentences made of less or equal to NOJUNK words")
 
     args = parser.parse_args()
     print args
