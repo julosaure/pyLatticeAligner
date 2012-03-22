@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
 import fileinput, argparse
-import nltk
+import nltk, nltk.data
 import sentence, multiAligner, lattice
+
+# default tagger in NLTK 
+POS_TAGGER = 'taggers/maxent_treebank_pos_tagger/english.pickle'
 
 class PyLatticeAligner():
 
@@ -10,14 +13,15 @@ class PyLatticeAligner():
         self.stemmer = nltk.stem.SnowballStemmer("english")
         # default NLTK tokenizer
         self.tokenizer = nltk.TreebankWordTokenizer()
+        self.tagger = nltk.data.load(POS_TAGGER)
 
     def readSentences(self, inputFile, noJunk):
         lSentences = []
         for line in fileinput.input(inputFile):
             line = line.decode('utf8')
             line = line.strip()
-            sent = sentence.Sentence(line, self.stemmer, self.tokenizer)
-            print sent
+            sent = sentence.Sentence(line, self.stemmer, self.tokenizer, self.tagger)
+            print sent.pp()
             if noJunk and len(sent)<2:
                 continue
             lSentences.append(sent)
@@ -37,8 +41,8 @@ class PyLatticeAligner():
     def searchBestPath(self, align):
         lat = lattice.Lattice(align)
         #print lat
-        print lat.getBestPath()
         print lat.getBestPath(False)
+        print lat.getBestPath()
 
     def main(self, inputFile, noJunk):
         lSentences = self.readSentences(inputFile, noJunk)

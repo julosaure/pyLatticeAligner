@@ -15,10 +15,17 @@ class Alignment(list):
     def __str__(self):
         return str(map(str, self.__iter__()))
 
-    def sentAlign(self):
+    def sentAlign(self, tempSentences=[]):
+        """ Allows to visualize an Alignment.
+        tempSentences allows to visualize an Alignment during the decoding/alignment of the
+        current Alignment with a new sentence or Alignment: add the sentence(s) of this new
+        item in input into tempSentences.
+        """
         s = []
         #print lSentence
-        for i in self.alignedSentences:
+        temp = copy.copy(self.alignedSentences)
+        temp.extend(tempSentences)
+        for i in temp:
             sent = self.lSentence[i]
             #print sent
             for cell in self:
@@ -67,22 +74,46 @@ class AlignCell(list):
 
 
     def add(self, sentPos):
-        assert sentPos.sentence in self.alignedSentences, str(sentPos.sentence)+" "+str(self.alignedSentences)
-        assert sentPos.pos < len(self.lSentence[sentPos.sentence]), str(sentPos.pos)+ " " +str(self.lSentence[sentPos.sentence])
+        assert sentPos.sentence not in self.alignedSentences, str(sentPos.sentence)+" "+str([str(a) for a in self.alignedSentences])
+        #assert sentPos.pos < len(self.lSentence[sentPos.sentence]), str(sentPos.pos)+ " " +str(self.lSentence[sentPos.sentence])
         bisect.insort_left(self, sentPos)
-        
+
+    def addEmpty(self, sentPos):
+        assert sentPos.sentence in self.alignedSentences, str(sentPos.sentence)+" "+str([str(a) for a in self.alignedSentences])
+        bisect.insort_left(self, sentPos)
+
+    def fillNonAlignedTokens(self):
+        for n in self.alignedSentences:
+            self.addEmpty(SentPos(n, -1))
+
+
     def __eq__(self, other):
         #print other
         if isinstance(other, sentence.Token):
-            return self.eqToken(other)
+            if self.getSelfTokenEqualsOtherToken(other) is not None:
+                return True
+            else:
+                return False
         elif isinstance(other, AlignCell):
-            return self.eqAlignCell(other)
+            if self.getSelfTokenEqualsOtherAlignCell(other) is not None:
+                return True
+            else:
+                return False
         else:
             raise Exception("Invalid type, type(other)="+str(type(other)))
 
-    def eqToken(self, token):
+    def getEqualOther(self, other):
+        if isinstance(other, sentence.Token):
+            return self.getSelfTokenEqualsOtherToken(other) 
+        elif isinstance(other, AlignCell):
+            return self.getSelfTokenEqualsOtherAlignCell(other) 
+        else:
+            raise Exception("Invalid type, type(other)="+str(type(other)))
+
+
+    def getSelfTokenEqualsOtherToken(self, token):
         assert isinstance(token, sentence.Token)
-        equals = False
+        equalToken = None
         for sentPos in self:
             if sentPos.pos == -1:
                 continue
@@ -90,14 +121,14 @@ class AlignCell(list):
             assert sentPos.pos < len(self.lSentence[sentPos.sentence]), str(sentPos.pos) + str(self.lSentence[sentPos.sentence]) 
             sentPosTok = self.lSentence[sentPos.sentence][sentPos.pos]
             if sentPosTok == token:
-                equals = True
+                equalToken = sentPosTok
                 break
         #print self.pp() + " / " +str(token)+ " -> " +str(equals)
-        return equals
+        return equalToken
     
-    def eqAlignCell(self, other):
+    def getSelfTokenEqualsOtherAlignCell(self, other):
         assert isinstance(other, AlignCell)
-        equals = False
+        equalToken = None
         breakMainLoop = False
         for sentPos in self:
             if breakMainLoop:
@@ -111,15 +142,11 @@ class AlignCell(list):
                 sentPosTok = self.lSentence[sentPos.sentence][sentPos.pos]
                 sentPosOtherTok = other.lSentence[sentPosOther.sentence][sentPosOther.pos]
                 if sentPosTok == sentPosOtherTok:
-                    equals = True
+                    equalToken = sentPosTok
                     breakMainLoop = True
                     break
         #print self.pp() + " / " +str(token)+ " -> " +str(equals)
-        return equals
-
-    def fillNonAlignedTokens(self):
-        for n in self.alignedSentences:
-            self.add(SentPos(n, -1))
+        return equalToken
 
 class SentPos():
     """ A couple representing a Position in a Sentence.

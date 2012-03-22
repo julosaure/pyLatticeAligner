@@ -5,27 +5,35 @@ from alignment import *
 
 class Sentence(list):
 
-    def __init__(self, text, stemmer, tokenizer):
+    def __init__(self, text, stemmer, tokenizer, tagger):
         self.text = text
         
         tokens = tokenizer.tokenize(self.text)
-        stemmedTokens = map(lambda t: Token(t, stemmer.stem(t)), tokens)
-        self.extend(stemmedTokens)
+        taggedTokens = tagger.tag(tokens)
+        stemmedTaggedTokens = map(lambda (tok, tag): Token(tok, stemmer.stem(tok), tag), taggedTokens)
+        self.extend(stemmedTaggedTokens)
 
     def __str__(self):
         return str(map(str, self.__iter__()))
         
 
+    def pp(self):
+        return str([tok.pp() for tok in self])
+
 @total_ordering
 class Token:
     
-    def __init__(self, text, stem=None):
+    def __init__(self, text, stem=None, tag=None):
         self.text = text
         self.stem = stem
         self.comp = self.stem if self.stem is not None else self.text
+        self.tag = tag
 
     def __str__(self):
         return self.text.encode("utf8")
+
+    def pp(self):
+        return str((str(self), self.tag))
 
     def __eq__(self, other):
         if isinstance(other, Token):
