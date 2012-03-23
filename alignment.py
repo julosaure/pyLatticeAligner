@@ -29,6 +29,7 @@ class Alignment(list):
             sent = self.lSentence[i]
             #print sent
             for cell in self:
+                s.append('(')
                 for sentPos in cell:
                     if sentPos.sentence == i:
                         if sentPos.pos == -1:
@@ -36,8 +37,10 @@ class Alignment(list):
                         else:
                             s.append(str(sent[sentPos.pos]))
                         s.append(',')
+                s.pop()
+                s.append(')')
             s.append('\n')
-        return string.join(s)
+        return ''.join(s)
 
     def newAlignCell(self):
         """ AlignCell Factory constructor.
@@ -63,12 +66,18 @@ class AlignCell(list):
         for i in self.alignedSentences:
             sent = self.lSentence[i]
             for sentPos in self:
+                count = 0
                 if sentPos.sentence == i:
                     if sentPos.pos == -1:
                         s.append('X')
                     else:
                         s.append(str(sent[sentPos.pos]))
                     s.append(',')
+                    count += 1
+                    if count > 1:
+                        print "Sentence "+str(i)+": "+sent
+                        print string.join(s)
+                        raise Exception("ALERT: Several positions for sentence "+str(i)+" in the same AlignCell. This should not be possible. There is probably an error during the decoding of alignments.")
             #s.append('\n')
         return string.join(s)
 
@@ -86,9 +95,16 @@ class AlignCell(list):
         for n in self.alignedSentences:
             self.addEmpty(SentPos(n, -1))
 
+    def tags(self):
+        """ Retrieve the list of the tags of the tokens in this AlignCell.
+        """
+        lTags = []
+        for sp in self:
+            token = self.lSentence[sp.sentence][sp.pos]
+            lTags.append(token.tag)
+        return lTags
 
     def __eq__(self, other):
-        #print other
         if isinstance(other, sentence.Token):
             if self.getSelfTokenEqualsOtherToken(other) is not None:
                 return True
@@ -103,6 +119,8 @@ class AlignCell(list):
             raise Exception("Invalid type, type(other)="+str(type(other)))
 
     def getEqualOther(self, other):
+        """ Retrieve the Token in this AlignCell which equals the other token or a token in other.
+        """
         if isinstance(other, sentence.Token):
             return self.getSelfTokenEqualsOtherToken(other) 
         elif isinstance(other, AlignCell):
@@ -112,6 +130,8 @@ class AlignCell(list):
 
 
     def getSelfTokenEqualsOtherToken(self, token):
+        """ Retrieve the Token in this AlignCell which equals the token in input.
+        """
         assert isinstance(token, sentence.Token)
         equalToken = None
         for sentPos in self:
@@ -127,6 +147,8 @@ class AlignCell(list):
         return equalToken
     
     def getSelfTokenEqualsOtherAlignCell(self, other):
+        """ Retrieve the Token in this AlignCell which equals a token in the AlignCell in input.
+        """
         assert isinstance(other, AlignCell)
         equalToken = None
         breakMainLoop = False

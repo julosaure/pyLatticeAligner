@@ -5,11 +5,14 @@ from alignment import *
 
 class Sentence(list):
 
-    def __init__(self, text, stemmer, tokenizer, tagger):
+    def __init__(self, text, stemmer, tokenizer, tagger=None):
         self.text = text
         
         tokens = tokenizer.tokenize(self.text)
-        taggedTokens = tagger.tag(tokens)
+        if tagger is not None:
+            taggedTokens = tagger.tag(tokens)
+        else:
+            taggedTokens = zip(tokens, ['' for x in tokens])
         stemmedTaggedTokens = map(lambda (tok, tag): Token(tok, stemmer.stem(tok), tag), taggedTokens)
         self.extend(stemmedTaggedTokens)
 

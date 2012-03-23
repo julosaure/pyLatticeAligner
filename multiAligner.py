@@ -8,9 +8,12 @@ from editDistance import *
 
 class MultiAligner:
 
-    def __init__(self, lSentence_):
+    def __init__(self, lSentence_, editDist=None):
         self.lSentence = lSentence_
-        self.ed = SimpleEditDistance()
+        if editDist is not None:
+            self.ed = PosEditDistance()
+        else:
+            self.ed = SimpleEditDistance()
         
     def align(self):
         sentencesToAlign = copy.copy(self.lSentence)
@@ -18,22 +21,7 @@ class MultiAligner:
         lNumSentence = LNumSentence(sentencesToAlign)
         lAlign = copy.copy(lNumSentence)
 
-        a="""distMat = self.computeDistanceMatrix(sentencesToAlign)
-        print distMat
-
-        n1, n2 = self.pickSentencePair(distMat, sentencesToAlign)
-        align = self.alignSentencePair(n1, n2, sentencesToAlign)
-        print align
-        print align.sentAlign()
-
-        lAlign.popNum(n2)
-        lAlign.popNum(n1)
-        lAlign.insert(0, align)
-        """
-        #while len(align.alignedSentences) < len(sentencesToAlign):
         while len(lAlign) > 1: 
-            #n2 = self.pickMinSentence(distMat, align.lSentence, align.alignedSentences)
-            #align = self.alignSentenceVsAlignment(align, n2)
             distMat = self.computeDistanceMatrix2(lAlign)
             print distMat
             i1, i2 = self.pickItemsToAlign(distMat, lAlign)
@@ -43,7 +31,6 @@ class MultiAligner:
             #print a2
             align = self.alignItems(a1, a2, sentencesToAlign)
             lAlign.insert(0, align)
-            #distMat = self.updateDistanceMatrix(distMat)
         
         align = lAlign[0]
         alignstr =  align.sentAlign()
@@ -120,20 +107,18 @@ class MultiAligner:
         return align
 
     def alignAlignments(self, a1, a2):
-        #s2 = align.lSentence[n2]
-        #print s2
         editMat, finalCell = self.computeEditDistance(a1, a2)
-        #print editMat
+        print editMat
 
         cell = finalCell
         while cell.i > 0 or cell.j > 0: 
-            #alignCell = align[sell.i-1]
-            #print cell.pp()
+            s = cell.pp() 
+            if cell.prev is not None:
+                s += " " + cell.prev.pp()
+            print s
 
-            prevPos = cell.i-1
-            if prevPos < 0:
-                prevPos = 0
-
+            prevPos = max(0, cell.i-1)
+            
             if cell.i == cell.prev.i+1:
                 pass
                 # equality or substitution
@@ -142,25 +127,34 @@ class MultiAligner:
                 # insertion
                 alignCell = a1.newAlignCell()
                 alignCell.fillNonAlignedTokens()
-                a1.insert(prevPos, alignCell)
+                if cell.i == 0:
+                    a1.insert(0, alignCell)
+                else:
+                    a1.insert(prevPos+1, alignCell)
 
-            if cell.j == cell.prev.j+1: 
-                #if  cell.i == cell.prev.i+1:
-                    # equality or substitution or insertion
-                    ac2 = a2[cell.j-1]
+            if cell.j == cell.prev.j+1:
+                prevPos2 = max(0, cell.j-1)
+                #prevPos2 = max(0, cell.prev.j)
+
+                if  cell.i == cell.prev.i+1:
+                    # equality or substitution 
+                    ac2 = a2[prevPos2]
                     for sp in ac2:
                         a1[prevPos].add(sp)
-                #else:
+                else:
                     # insertion
-                 #   ac2 = a2[cell.j-1]
-                  #  for sp in ac2:
-                   #     a1[cell.i].add(sp)
+                    ac2 = a2[prevPos2]
+                    for sp in ac2:
+                        if cell.i == 0:
+                            a1[0].add(sp)
+                        else:
+                            a1[prevPos+1].add(sp)
             else:
                 # deletion
                 for nSent in a2.alignedSentences:
                     a1[prevPos].add(SentPos(nSent, -1))
                 
-            #print align.sentAlign(a2.alignedSentences)
+            print a1.sentAlign(a2.alignedSentences)
             cell = cell.prev
         
         a1.alignedSentences.extend(a2.alignedSentences)
@@ -172,20 +166,16 @@ class MultiAligner:
         #print s2
         editMat, finalCell = self.computeEditDistance(a1, s2)
         #print editMat
-        
 
         cell = finalCell
         while cell.i > 0 or cell.j > 0: 
-            #alignCell = align[sell.i-1]
             s = cell.pp() 
             if cell.prev is not None:
                 s += " " + cell.prev.pp()
             #print s
 
-            prevPos = cell.i-1
-            if prevPos < 0:
-                prevPos = 0
-
+            prevPos = max(0, cell.i-1)
+            
             if cell.i == cell.prev.i+1:
                 pass
                 # equality or substitution
@@ -194,16 +184,22 @@ class MultiAligner:
                 # insertion
                 alignCell = a1.newAlignCell()
                 alignCell.fillNonAlignedTokens()
-                #alignCell.add(SentPos(n2, cell.j-1))
-                a1.insert(prevPos, alignCell)
+                if cell.i == 0:
+                    a1.insert(0, alignCell)
+                else:
+                    a1.insert(prevPos+1, alignCell)
 
             if cell.j == cell.prev.j+1: 
-                #if  cell.i == cell.prev.i+1:
-                    # equality or substitution or insertion
-                    a1[prevPos].add(SentPos(n2, cell.j-1))
-                #else:
+                prevPos2 = max(0, cell.j-1)
+                if  cell.i == cell.prev.i+1:
+                    # equality or substitution 
+                    a1[prevPos].add(SentPos(n2, prevPos2))
+                else:
                     # insertion
-                 #   a1[prevPos].add(SentPos(n2, cell.j-1))
+                    if cell.i == 0:
+                        a1[0].add(SentPos(n2, prevPos2))
+                    else:
+                        a1[prevPos+1].add(SentPos(n2, prevPos2))
             else:
                 # deletion
                 a1[prevPos].add(SentPos(n2, -1))
@@ -249,6 +245,8 @@ class MultiAligner:
         return align
 
     def computeDistanceMatrix(self, sentenceToAlign):
+        """ Compute the matrix of edit distance between all pairs of items (Sentence or Alignment) of sentencesToAlign.
+        """
         nbSentence = len(sentenceToAlign)
         distMat = numpy.zeros((nbSentence, nbSentence), int)
         
@@ -259,6 +257,8 @@ class MultiAligner:
         return distMat
 
     def computeEditDistance(self, s1, s2):
+        """ Compute the edit distance betweem to items, either Sentences or Alignments.
+        """
         l1 = len(s1); l2 = len(s2)
         mat = numpy.zeros((l1+1,l2+1), object)
         
@@ -281,6 +281,8 @@ class MultiAligner:
 
  
 class DistCell():
+    """ A cell of the edit distance matrix, composed of its positions i and j in the matrix, of its value val, and of a pointer to its predecessor cell (chosen during the dynamic programming step that created this cell).
+    """
     def __init__(self, i, j, val, prevDistCell):
         self.i = i
         self.j = j

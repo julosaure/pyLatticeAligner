@@ -35,7 +35,8 @@ class Lattice(list):
             for token, count in dicToken.iteritems():
                 latCell.append(LatticeToken(token, -math.log(count/nbToken)))
             self.append(latCell)
-
+            print self
+            
     def getBestPath(self, clean=True):
         """ Returns the best path in the lattice, with or without 
         the null tokens.
