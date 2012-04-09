@@ -8,8 +8,7 @@ MALIGNER = "/Users/julien/workspaces/xp/hcomp12/pyLatticeAligner/pyLatticeAligne
 def main(directory, refFile, opts=None):
     
     begin = datetime.datetime.now()
-    print "End after "+ str(datetime.datetime.now()-begin)
-
+    
     outFile = os.path.join(directory,refFile[:-4] + ".aligned")
     out = open(outFile, "w")
 
@@ -50,6 +49,6 @@ if __name__ == "__main__":
     parser.add_argument("-opts", nargs=argparse.REMAINDER, action="store", help="Options to pass to the multialigner")
 
     args = parser.parse_args()
-    print args
+    #print args
     
     main(args.dir[0], args.refName[0], args.opts)
