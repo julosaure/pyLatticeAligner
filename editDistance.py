@@ -4,7 +4,8 @@ from sentence import *
 from alignment import *
 
 class SimpleEditDistance:
-
+    """ Standard Edit Distance.
+    """
     def ins(self):
         return 1
 
@@ -26,7 +27,9 @@ class SimpleEditDistance:
         return score
 
 class PosEditDistance:
-
+    """ POS enhanced edit distance: aligns preferentially tokens
+    that share a same POS.
+    """
     def ins(self):
         return 2
 
@@ -106,12 +109,4 @@ class PosEditDistance:
                                 score = scoreTagMatch
                                 break
                               
-        #elif tok1.tag == tok2.tag:
-            #assert tok1.tag == tok2.tag, tok1.pp()+ " " +tok2.pp()
-            # the POS match but not the tokens
-         #   score = 1
-        #else:
-            # substitution
-         #   score = 2
-        
         return score
