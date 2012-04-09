@@ -40,13 +40,9 @@ class AbsSent(tuple):
 class LNumSentence(list):
     def __init__(self, lSentence_):
         lSentence = copy.copy(lSentence_)
-        #lPos = [Pos(i) for i in xrange(len(lSentence))]
-        #l = zip(lPos, lSentence)
-        #self.extend(l)
         i = 0
         for sent in lSentence:
             p = AbsSent([AbsPos(i), sent])
-            #print p
             self.append(p)
             i += 1
 
@@ -60,10 +56,6 @@ class LNumSentence(list):
                     break
             pos += 1
 
-#class LAlign(list):
-#    def __setitem__(self, pos, item):
-#        assert isinstance(item, Alignment) or isinstance(item, PosSent), str(type(item))
-#        self[pos] = item
 
     def getSentOrAlignAtPos(self, pos):
         item = self[pos]
