@@ -23,7 +23,7 @@ class MultiAligner:
         lAlign = copy.copy(lNumSentence)
 
         while len(lAlign) > 1: 
-            distMat = self.computeDistanceMatrix2(lAlign)
+            distMat = self.computeDistanceMatrix(lAlign)
             print distMat
             i1, i2 = self.pickItemsToAlign(distMat, lAlign)
             a2 = lAlign.pop(i2)
@@ -38,6 +38,8 @@ class MultiAligner:
         return align, alignstr
 
     def pickItemsToAlign(self, distMat, lAlign):
+        """ Finds a pair of Sentence and/or Alignments whose distance is minimal.
+        """
         minVal = 999
         minI = 0
         minJ = 0
@@ -49,7 +51,9 @@ class MultiAligner:
                     minJ = j
         return minI, minJ
 
-    def computeDistanceMatrix2(self, lAlign):
+    def computeDistanceMatrix(self, lAlign):
+        """ Computes the distance matrix between all Sentence and Alignments.
+        """
         nbSentence = len(lAlign)
         distMat = numpy.zeros((nbSentence, nbSentence), int)
         
@@ -63,35 +67,9 @@ class MultiAligner:
         return distMat
 
 
-    def pickSentencePair(self, distMat, sentencesToAlign):
-        """ Pick the sentence pair with minimal edit distance in distMat.
-        """
-        minVal = 999
-        minI = 0
-        minJ = 0
-        for i in xrange(len(sentencesToAlign)):
-            for j in xrange(i+1, len(sentencesToAlign)):
-                if distMat[i,j] < minVal:
-                    minVal = distMat[i,j]
-                    minI = i
-                    minJ = j
-        return minI, minJ
-
-    def pickMinSentence(self, distMat, sentencesToAlign, lAlignedSentences):
-        """ Pick the sentence with minimal edit distance to previously aligned sentences.
-        """
-        minVal = 999
-        minJ = 0
-        for i in lAlignedSentences:
-            for j in xrange(len(sentencesToAlign)):
-                if j in lAlignedSentences:
-                    continue
-                if distMat[i,j] < minVal:
-                    minVal = distMat[i,j]
-                    minJ = j
-        return minJ
-
     def alignItems(self, a1, a2, sentencesToAlign):
+        """ Aligns 2 items, either Sentence or Alignment.
+        """
         if isinstance(a1, tuple) and isinstance(a2, tuple):
             print a1
             print a2
@@ -109,6 +87,8 @@ class MultiAligner:
         return align
 
     def alignAlignments(self, a1, a2):
+        """Aligns 2 Alignment.
+        """
         finalCell = self.computeEditDistance(a1, a2)
         #print editMat
 
@@ -164,6 +144,8 @@ class MultiAligner:
 
 
     def alignSentenceVsAlignment(self, a1, a2):
+        """Aligns an Alignment and a Sentence.
+        """
         n2, s2 = a2 #align.lSentence[n2]
         #print s2
         finalCell = self.computeEditDistance(a1, s2)
@@ -213,6 +195,8 @@ class MultiAligner:
 
         
     def alignSentencePair(self, a1, a2, sentencesToAlign):
+        """ Aligns 2 Sentence.
+        """
         n1, s1 = a1 #sentencesToAlign[n1]
         n2, s2 = a2 #sentencesToAlign[n2]
         finalCell = self.computeEditDistance(s1, s2)
@@ -245,18 +229,6 @@ class MultiAligner:
 
         align.alignedSentences.extend([n1, n2])
         return align
-
-    def computeDistanceMatrix(self, sentenceToAlign):
-        """ Compute the matrix of edit distance between all pairs of items (Sentence or Alignment) of sentencesToAlign.
-        """
-        nbSentence = len(sentenceToAlign)
-        distMat = numpy.zeros((nbSentence, nbSentence), int)
-        
-        for i in xrange(len(sentenceToAlign)):
-            for j in xrange(i+1, len(sentenceToAlign)):
-                editMat, finalCell = self.computeEditDistance(sentenceToAlign[i], sentenceToAlign[j])
-                distMat[i,j] = finalCell.val
-        return distMat
 
     @memo
     def computeEditDistance(self, s1, s2):
