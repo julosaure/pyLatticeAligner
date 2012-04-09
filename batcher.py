@@ -1,12 +1,15 @@
 #!/usr/bin/python
 
-import glob, fileinput, subprocess, sys, argparse, os.path
+import glob, fileinput, subprocess, sys, argparse, os.path, datetime
 
 MALIGNER = "/Users/julien/workspaces/xp/hcomp12/pyLatticeAligner/pyLatticeAligner.py"
 
 
 def main(directory, refFile, opts=None):
     
+    begin = datetime.datetime.now()
+    print "End after "+ str(datetime.datetime.now()-begin)
+
     outFile = os.path.join(directory,refFile[:-4] + ".aligned")
     out = open(outFile, "w")
 
@@ -37,6 +40,7 @@ def main(directory, refFile, opts=None):
         i += 1
         
     out.close()
+    print "Total time: "+ str(datetime.datetime.now()-begin)
 
 if __name__ == "__main__":
 

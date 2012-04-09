@@ -3,6 +3,7 @@
 import fileinput, argparse
 import nltk, nltk.data
 import sentence, multiAligner, lattice
+import cProfile
 
 # default tagger in NLTK 
 POS_TAGGER = 'taggers/maxent_treebank_pos_tagger/english.pickle'

@@ -23,6 +23,18 @@ class Sentence(list):
     def pp(self):
         return str([tok.pp() for tok in self])
 
+    def __eq__(self, other):
+        equals = True
+        if not isinstance(other, Sentence) or len(self) != len(other):
+            equals = False
+        else:
+            for tok1, tok2  in zip(self, other):
+                if tok1 != tok2:
+                    equals = False
+                    break
+        return equals
+
+            
 @total_ordering
 class Token:
     

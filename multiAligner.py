@@ -5,6 +5,7 @@ from alignment import *
 from sentence import * 
 from lalign import *
 from editDistance import *
+from memoization import memo
 
 class MultiAligner:
 
@@ -56,7 +57,8 @@ class MultiAligner:
             for j in xrange(i+1, nbSentence):
                 s1 = lAlign.getSentOrAlignAtPos(i)
                 s2 = lAlign.getSentOrAlignAtPos(j)
-                editMat, finalCell = self.computeEditDistance(s1, s2)
+                #editMat, finalCell = self.computeEditDistance(s1, s2)
+                finalCell = self.computeEditDistance(s1, s2)
                 distMat[i,j] = finalCell.val
         return distMat
 
@@ -107,15 +109,15 @@ class MultiAligner:
         return align
 
     def alignAlignments(self, a1, a2):
-        editMat, finalCell = self.computeEditDistance(a1, a2)
-        print editMat
+        finalCell = self.computeEditDistance(a1, a2)
+        #print editMat
 
         cell = finalCell
         while cell.i > 0 or cell.j > 0: 
             s = cell.pp() 
             if cell.prev is not None:
                 s += " " + cell.prev.pp()
-            print s
+            #print s
 
             prevPos = max(0, cell.i-1)
             
@@ -154,7 +156,7 @@ class MultiAligner:
                 for nSent in a2.alignedSentences:
                     a1[prevPos].add(SentPos(nSent, -1))
                 
-            print a1.sentAlign(a2.alignedSentences)
+            #print a1.sentAlign(a2.alignedSentences)
             cell = cell.prev
         
         a1.alignedSentences.extend(a2.alignedSentences)
@@ -164,7 +166,7 @@ class MultiAligner:
     def alignSentenceVsAlignment(self, a1, a2):
         n2, s2 = a2 #align.lSentence[n2]
         #print s2
-        editMat, finalCell = self.computeEditDistance(a1, s2)
+        finalCell = self.computeEditDistance(a1, s2)
         #print editMat
 
         cell = finalCell
@@ -213,7 +215,7 @@ class MultiAligner:
     def alignSentencePair(self, a1, a2, sentencesToAlign):
         n1, s1 = a1 #sentencesToAlign[n1]
         n2, s2 = a2 #sentencesToAlign[n2]
-        editMat, finalCell = self.computeEditDistance(s1, s2)
+        finalCell = self.computeEditDistance(s1, s2)
         #print editMat
         align = Alignment(sentencesToAlign)
 
@@ -256,6 +258,7 @@ class MultiAligner:
                 distMat[i,j] = finalCell.val
         return distMat
 
+    @memo
     def computeEditDistance(self, s1, s2):
         """ Compute the edit distance betweem to items, either Sentences or Alignments.
         """
@@ -277,8 +280,8 @@ class MultiAligner:
                 mat[i,j] = DistCell(i, j, prev[0], prev[1])
                 #print i, j, prev[0], prev[1]
         #print mat
-        return mat, mat[l1,l2]
-
+        #return mat, mat[l1,l2]
+        return mat[l1,l2]
  
 class DistCell():
     """ A cell of the edit distance matrix, composed of its positions i and j in the matrix, of its value val, and of a pointer to its predecessor cell (chosen during the dynamic programming step that created this cell).
